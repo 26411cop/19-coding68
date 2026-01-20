@@ -1,0 +1,4 @@
+import time
+s=time.time()
+input()
+print(time.time()-s)
