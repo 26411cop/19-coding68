@@ -1,4 +1,8 @@
 import time
-s=time.time()
-input()
-print(time.time()-s)
+
+start = time.time()
+input("กด Enter เพื่อหยุดเวลา")
+end = time.time()
+
+elapsed = end - start
+print(f"ใช้เวลา {elapsed:.2f} วินาที")
