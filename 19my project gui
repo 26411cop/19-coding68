@@ -1,0 +1,124 @@
+import tkinter as tk
+from tkinter import ttk
+import time
+
+# ---------- State ----------
+running = False
+paused = False
+total_time = 0
+remaining = 0
+
+# ---------- Functions ----------
+def start():
+    global running, paused, total_time, remaining
+    if not running:
+        value = int(entry.get())
+        unit = unit_var.get()
+        total_time = value if unit == "วินาที" else value * 60
+        remaining = total_time
+
+        progress["maximum"] = total_time
+        progress["value"] = 0
+
+        running = True
+        paused = False
+        pause_btn.config(text="หยุด")
+        update()
+
+def pause():
+    global paused
+    if running:
+        paused = not paused
+        pause_btn.config(text="ทำต่อ" if paused else "หยุด")
+
+def reset():
+    global running, paused
+    running = False
+    paused = False
+    label.config(text="0")
+    progress["value"] = 0
+    pause_btn.config(text="หยุด")
+
+def update():
+    global remaining, running
+    if running and not paused:
+        if remaining >= 0:
+            label.config(text=f"{remaining}")
+            progress["value"] = total_time - remaining
+            remaining -= 1
+            root.after(1000, update)
+        else:
+            label.config(text="⏰ หมดเวลา")
+            running = False
+
+# ---------- UI ----------
+root = tk.Tk()
+root.title("Focus Timer")
+root.geometry("520x360")
+root.configure(bg="#1e1e2e")
+
+style = ttk.Style()
+style.theme_use("default")
+style.configure(
+    "TProgressbar",
+    thickness=25,
+    troughcolor="#3b3b4f",
+    background="#00ffcc"
+)
+
+tk.Label(
+    root, text="FOCUS TIMER",
+    font=("Arial", 22, "bold"),
+    fg="#00ffcc", bg="#1e1e2e"
+).pack(pady=10)
+
+input_frame = tk.Frame(root, bg="#1e1e2e")
+input_frame.pack(pady=5)
+
+entry = tk.Entry(input_frame, font=("Arial", 16), width=6, justify="center")
+entry.insert(0, "1")
+entry.grid(row=0, column=0, padx=5)
+
+unit_var = tk.StringVar(value="วินาที")
+unit_menu = ttk.Combobox(
+    input_frame,
+    textvariable=unit_var,
+    values=["วินาที", "นาที"],
+    state="readonly",
+    width=7
+)
+unit_menu.grid(row=0, column=1, padx=5)
+
+label = tk.Label(
+    root, text="0",
+    font=("Arial", 40, "bold"),
+    fg="white", bg="#1e1e2e"
+)
+label.pack(pady=20)
+
+progress = ttk.Progressbar(root, length=420)
+progress.pack(pady=10)
+
+btn_frame = tk.Frame(root, bg="#1e1e2e")
+btn_frame.pack(pady=20)
+
+tk.Button(
+    btn_frame, text="เริ่ม",
+    width=10, bg="#00ffcc",
+    command=start
+).grid(row=0, column=0, padx=5)
+
+pause_btn = tk.Button(
+    btn_frame, text="หยุด",
+    width=10, bg="#ffaa00",
+    command=pause
+)
+pause_btn.grid(row=0, column=1, padx=5)
+
+tk.Button(
+    btn_frame, text="รีเซ็ต",
+    width=10, bg="#ff5555", fg="white",
+    command=reset
+).grid(row=0, column=2, padx=5)
+
+root.mainloop()
