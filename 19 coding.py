@@ -1,0 +1,145 @@
+import tkinter as tk
+from tkinter import ttk
+
+# ---------- State ----------
+running = False
+paused = False
+total_time = 0
+remaining = 0
+unit = "วินาที"   # หน่วยเริ่มต้น
+
+# ---------- Functions ----------
+def toggle_unit():
+    global unit
+    unit = "นาที" if unit == "วินาที" else "วินาที"
+    unit_btn.config(text=f"หน่วย: {unit}")
+
+def start():
+    global running, paused, total_time, remaining
+    if not running:
+        try:
+            value = int(entry.get())
+            if value <= 0:
+                raise ValueError
+        except ValueError:
+            label.config(text="กรอกตัวเลข > 0")
+            return
+
+        total_time = value if unit == "วินาที" else value * 60
+        remaining = total_time
+
+        progress["maximum"] = total_time
+        progress["value"] = 0
+
+        running = True
+        paused = False
+        pause_btn.config(text="หยุดพัก")
+        update()
+
+def pause():
+    global paused
+    if running:
+        paused = not paused
+        pause_btn.config(text="ทำต่อ" if paused else "หยุดพัก")
+
+def reset():
+    global running, paused
+    running = False
+    paused = False
+    label.config(text="0")
+    progress["value"] = 0
+    pause_btn.config(text="หยุดพัก")
+
+def update():
+    global remaining, running
+    if running and not paused:
+        if remaining >= 0:
+            label.config(text=f"{remaining}")
+            progress["value"] = total_time - remaining
+            remaining -= 1
+            root.after(1000, update)
+        else:
+            label.config(text="⏰ หมดเวลา")
+            running = False
+
+# ---------- UI ----------
+root = tk.Tk()
+root.title("🔥 Focus Timer")
+root.geometry("520x460")
+root.minsize(520, 460)
+root.configure(bg="#1e1e2e")
+
+style = ttk.Style()
+style.theme_use("default")
+style.configure(
+    "TProgressbar",
+    thickness=30,
+    troughcolor="#3b3b4f",
+    background="#00ffcc"
+)
+
+tk.Label(
+    root,
+    text="FOCUS TIMER",
+    font=("Arial", 24, "bold"),
+    fg="#00ffcc",
+    bg="#1e1e2e"
+).pack(pady=15)
+
+entry = tk.Entry(root, font=("Arial", 16), justify="center", width=10)
+entry.pack(pady=8)
+entry.insert(0, "60")
+
+# ปุ่มสลับหน่วย
+unit_btn = tk.Button(
+    root,
+    text=f"หน่วย: {unit}",
+    command=toggle_unit,
+    bg="#8888ff",
+    fg="white",
+    font=("Arial", 11, "bold"),
+    bd=0,
+    relief="flat",
+    cursor="hand2"
+)
+unit_btn.pack(pady=5)
+
+label = tk.Label(
+    root,
+    text="0",
+    font=("Arial", 40, "bold"),
+    fg="white",
+    bg="#1e1e2e"
+)
+label.pack(pady=25)
+
+progress = ttk.Progressbar(root, length=420)
+progress.pack(pady=15)
+
+btn_frame = tk.Frame(root, bg="#1e1e2e")
+btn_frame.pack(pady=25)
+
+def styled_button(parent, text, color, command):
+    return tk.Button(
+        parent,
+        text=text,
+        command=command,
+        bg=color,
+        fg="black" if color != "#ff5555" else "white",
+        activebackground=color,
+        font=("Arial", 12, "bold"),
+        width=10,
+        bd=0,
+        relief="flat",
+        cursor="hand2"
+    )
+
+start_btn = styled_button(btn_frame, "เริ่ม", "#00ffcc", start)
+pause_btn = styled_button(btn_frame, "หยุดพัก", "#ffaa00", pause)
+reset_btn = styled_button(btn_frame, "รีเซ็ต", "#ff5555", reset)
+
+start_btn.grid(row=0, column=0, padx=10)
+pause_btn.grid(row=0, column=1, padx=10)
+reset_btn.grid(row=0, column=2, padx=10)
+
+root.mainloop()
